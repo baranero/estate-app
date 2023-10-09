@@ -5,6 +5,7 @@ import { errorHandler } from "../utils/error";
 import jwt from "jsonwebtoken";
 
 interface UserDocument {
+  _id: string;
   id: string;
   username: string;
   email: string;
@@ -36,7 +37,7 @@ export const signin = async (
 ) => {
   const { email, password } = req.body;
   try {
-    const validUser = await User.findOne({ email }) as UserDocument;
+    const validUser = (await User.findOne({ email })) as UserDocument;
     if (!validUser) {
       return next(errorHandler(404, "User not found!"));
     }
@@ -53,6 +54,55 @@ export const signin = async (
       .cookie("access_token", token, { httpOnly: true })
       .status(200)
       .json(rest);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const google = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const user = await User.findOne({
+      email: req.body.email,
+    });
+
+    if (!process.env.JWT_SECRET) {
+      return next(errorHandler(500, "JWT_SECRET is not defined"));
+    }
+
+    if (user) {
+      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+
+      // Exclude the password from the response
+      const { password, ...rest } = user.toObject();
+
+      res
+        .cookie("access_token", token, { httpOnly: true })
+        .status(200)
+        .json(rest);
+    } else {
+      const generatedPassword = Math.random().toString(36).slice(-8);
+      const hashedPassword = bcryptjs.hashSync(generatedPassword, 10);
+      const newUser = new User({
+        username:
+          req.body.name.split(" ").join("").toLowerCase() +
+          Math.random().toString(36).slice(-4),
+        email: req.body.email,
+        password: hashedPassword,
+        avatar: req.body.photo
+      });
+
+      await newUser.save();
+      const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
+
+      // Exclude the password from the response
+      const { password, ...rest } = newUser.toObject();
+
+      res.cookie('access_token', token, { httpOnly: true }).status(200).json(rest);
+    }
   } catch (error) {
     next(error);
   }
