@@ -4,7 +4,7 @@ import bcryptjs from "bcryptjs";
 import { errorHandler } from "../utils/error";
 import jwt from "jsonwebtoken";
 
-interface UserDocument {
+export interface UserDocument {
   _id: string;
   id: string;
   username: string;
