@@ -6,11 +6,24 @@ import {
   ref,
   uploadBytesResumable,
 } from "firebase/storage";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  ChangeEvent,
+  FormEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { app } from "../firebase";
+import {
+  updateUserFailure,
+  updateUserStart,
+  updateUserSuccess,
+} from "../redux/user/userSlice";
+import { useDispatch } from "react-redux";
 
 const Profile = () => {
-  const { currentUser } = useSelector((state: RootState) => state.user);
+  const { currentUser, loading, error } = useSelector((state: RootState) => state.user);
 
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -20,12 +33,13 @@ const Profile = () => {
 
   const [fileUploadError, setFileUploadError] = useState(false);
 
-  const [formData, setFormData] = useState<{ avatar?: string }>({});
-
-  console.log(file);
-  console.log(filePerc);
-  console.log(fileUploadError);
-  console.log(formData);
+  const [formData, setFormData] = useState<{
+    avatar?: string;
+    username?: string;
+    email?: string;
+  }>({});
+  const [updateSuccess, setUpdateSuccess] = useState(false)
+  const dispatch = useDispatch();
 
   const handleFileUpload = useCallback(
     (file: File) => {
@@ -56,11 +70,10 @@ const Profile = () => {
   );
 
   useEffect(() => {
-
     if (file) {
       handleFileUpload(file);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file]);
 
   // firebase storage
@@ -75,12 +88,46 @@ const Profile = () => {
     }
   };
 
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [event.target.id]: event.target.value });
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    try {
+      dispatch(updateUserStart());
+      const res = await fetch(`/api/user/update/${currentUser?._id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (data.success === false) {
+          dispatch(updateUserFailure(data.message));
+          return;
+        }
+      }
+
+      dispatch(updateUserSuccess(data));
+      setUpdateSuccess(true)
+    } catch (error) {
+      if (error instanceof Error) {
+        dispatch(updateUserFailure(error.message));
+      } else {
+        dispatch(updateUserFailure("An error occured."));
+      }
+    }
+  };
+
   return (
     <div className="p-3 max-w-lg mx-auto">
       <h1 className="text-3xl font-semibold text-center my-7">Profile</h1>
-      <form className="flex flex-col gap-4">
+      <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
         <input
-          onChange={(event) => {
+          onChange={(event: ChangeEvent<HTMLInputElement>) => {
             if (event.target.files) {
               setFile(event.target.files[0]);
             }
@@ -92,7 +139,7 @@ const Profile = () => {
         />
         <img
           onClick={openFilePicker}
-          src={formData.avatar || currentUser?.avatar}
+          src={formData?.avatar || currentUser?.avatar}
           alt="Profile"
           className="rounded-full h-24 object-cover cursor-pointer self-center mt-2"
         />
@@ -114,27 +161,34 @@ const Profile = () => {
           placeholder="username"
           id="username"
           className="border p-3 rounded-lg"
+          defaultValue={currentUser?.username}
+          onChange={handleChange}
         />
         <input
           type="text"
           placeholder="email"
           id="email"
           className="border p-3 rounded-lg"
+          defaultValue={currentUser?.email}
+          onChange={handleChange}
         />
         <input
-          type="text"
+          type="password"
           placeholder="password"
           id="password"
           className="border p-3 rounded-lg"
+          onChange={handleChange}
         />
-        <button className="bg-slate-700 text-white rounded-lg p-3 uppercase hover:opacity-95 disabled:opacity-80">
-          Update
+        <button disabled={loading} className="bg-slate-700 text-white rounded-lg p-3 uppercase hover:opacity-95 disabled:opacity-80">
+          {loading ? 'Loading...' : 'Update'}
         </button>
       </form>
       <div className="flex justify-between mt-5">
         <span className="text-red-700 cursor-pointer">Delete Account</span>
         <span className="text-red-700 cursor-pointer">Sign Out</span>
       </div>
+      <p className="text-red-700 mt-5">{error ? error : ""}</p>
+      <p className="text-green-700 mt-5">{updateSuccess ? "User is updated successfully!" : ""}</p>
     </div>
   );
 };
