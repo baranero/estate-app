@@ -24,7 +24,15 @@ const userSlice = createSlice({
     signInStart: (state) => {
       state.loading = true;
     },
-    signInSuccess: (state, action: PayloadAction<{ username: string; email: string; avatar: string; _id: string }>) => {
+    signInSuccess: (
+      state,
+      action: PayloadAction<{
+        username: string;
+        email: string;
+        avatar: string;
+        _id: string;
+      }>
+    ) => {
       state.currentUser = action.payload;
       state.loading = false;
       state.error = null;
@@ -36,7 +44,15 @@ const userSlice = createSlice({
     updateUserStart: (state) => {
       state.loading = true;
     },
-    updateUserSuccess: (state, action: PayloadAction<{ username: string; email: string; avatar: string; _id: string }>) => {
+    updateUserSuccess: (
+      state,
+      action: PayloadAction<{
+        username: string;
+        email: string;
+        avatar: string;
+        _id: string;
+      }>
+    ) => {
       state.currentUser = action.payload;
       state.loading = false;
       state.error = null;
@@ -56,11 +72,35 @@ const userSlice = createSlice({
     deleteUserFailure: (state, action: PayloadAction<string>) => {
       state.error = action.payload;
       state.loading = false;
-    }
+    },
+    signOutUserStart: (state) => {
+      state.loading = true;
+    },
+    signOutUserSuccess: (state) => {
+      state.currentUser = null;
+      state.loading = false;
+      state.error = null;
+    },
+    signOutUserFailure: (state, action: PayloadAction<string>) => {
+      state.error = action.payload;
+      state.loading = false;
+    },
   },
 });
 
-
-export const { signInStart, signInSuccess, signInFailure, updateUserFailure, updateUserStart, updateUserSuccess, deleteUserFailure, deleteUserStart, deleteUserSuccess } = userSlice.actions;
+export const {
+  signInStart,
+  signInSuccess,
+  signInFailure,
+  updateUserFailure,
+  updateUserStart,
+  updateUserSuccess,
+  deleteUserFailure,
+  deleteUserStart,
+  deleteUserSuccess,
+  signOutUserFailure,
+  signOutUserStart,
+  signOutUserSuccess
+} = userSlice.actions;
 
 export default userSlice.reducer;
