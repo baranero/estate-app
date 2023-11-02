@@ -78,3 +78,62 @@ export const getListing = async (
     next(error);
   }
 };
+
+export const getListings = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 9;
+
+    const startIndex = req.query.startIndex
+    ? parseInt(req.query.startIndex as string)
+    : 0;
+  
+    let offer: object | undefined;
+
+    if (req.query.offer === undefined || req.query.offer === "false") {
+      offer = { $in: [false, true] };
+    }
+    let furnished: object | undefined;
+
+    if (req.query.furnished === undefined || req.query.furnished === "false") {
+      furnished = { $in: [false, true] };
+    }
+
+    let parking: object | undefined;
+
+    if (req.query.parking === undefined || req.query.parking === "false") {
+      parking = { $in: [false, true] };
+    }
+
+    let type = req.query.type;
+
+    if (type === undefined || type === "all") {
+      type = { $in: ["sale", "rent"] };
+    }
+
+    const searchTerm = req.query.searchTerm || "";
+    const sort = req.query.sort || "createdAt";
+    const order = req.query.order || "desc";
+    
+    const sortQuery: { [key: string]: 1 | -1 } = {};
+    sortQuery[sort as string] = order === 'asc' ? 1 : -1;
+    
+    const listings = await Listing.find({
+      name: { $regex: searchTerm, $options: "i" },
+      offer,
+      furnished,
+      parking,
+      type,
+    })
+    .sort(sortQuery)
+    .limit(limit)
+    .skip(startIndex);
+    
+    return res.status(200).json(listings);
+  } catch (error) {
+    next(error);
+  }
+};
