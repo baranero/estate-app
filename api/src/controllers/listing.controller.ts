@@ -85,26 +85,25 @@ export const getListings = async (
   next: NextFunction
 ) => {
   try {
-    const limit = req.query.limit ? parseInt(req.query.limit as string) : 9;
+    const limit = parseInt(req.query.limit as string) || 9;
 
-    const startIndex = req.query.startIndex
-    ? parseInt(req.query.startIndex as string)
-    : 0;
-  
-    let offer: object | undefined;
+    const startIndex = parseInt(req.query.startIndex as string) || 0;
+    
+    let offer: object | string | undefined = req.query.offer
 
-    if (req.query.offer === undefined || req.query.offer === "false") {
+    if (offer === undefined || offer === 'false') {
       offer = { $in: [false, true] };
     }
-    let furnished: object | undefined;
 
-    if (req.query.furnished === undefined || req.query.furnished === "false") {
+    let furnished: object | string | undefined = req.query.furnished
+
+    if (furnished === undefined || furnished === "false") {
       furnished = { $in: [false, true] };
     }
 
-    let parking: object | undefined;
+    let parking: object | string | undefined = req.query.parking
 
-    if (req.query.parking === undefined || req.query.parking === "false") {
+    if (parking === undefined || parking === "false") {
       parking = { $in: [false, true] };
     }
 

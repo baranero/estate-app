@@ -18,6 +18,7 @@ const Search = () => {
   const [loading, setLoading] = useState(false);
   const [listings, setListings] = useState<ListingType[]>([]);
   const [showMore, setShowMore] = useState(false);
+  
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
@@ -82,18 +83,17 @@ const Search = () => {
       setSidebardata({ ...sidebardata, searchTerm: event.target.value });
     }
 
-    if (
-      event.target.id === "parking" ||
-      event.target.id === "furnished" ||
-      event.target.id === "offer"
-    ) {
-      if (event.target instanceof HTMLInputElement) {
+    if (event.target.id === "parking" ||
+    event.target.id === "furnished" ||
+    event.target.id === "offer") {
+    if (event.target instanceof HTMLInputElement) {
         setSidebardata({
-          ...sidebardata,
-          [event.target.id]: event.target.checked,
+            ...sidebardata,
+            [event.target.id]: event.target.checked,
         });
-      }
     }
+}
+
 
     if (event.target.id === "sort_order") {
       const sort = event.target.value.split("_")[0] || "created_at";
@@ -101,15 +101,16 @@ const Search = () => {
       setSidebardata({ ...sidebardata, sort, order });
     }
   };
+  
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const urlParams = new URLSearchParams();
     urlParams.set("searchTerm", sidebardata.searchTerm);
     urlParams.set("type", sidebardata.type);
-    urlParams.set("parking", String(sidebardata.parking));
-    urlParams.set("furnished", String(sidebardata.furnished));
-    urlParams.set("offer", String(sidebardata.offer));
+    urlParams.set("parking", sidebardata.parking.toString());
+    urlParams.set("furnished", sidebardata.furnished.toString());
+    urlParams.set("offer", sidebardata.offer.toString());
     urlParams.set("sort", sidebardata.sort);
     urlParams.set("order", sidebardata.order);
     const searchQuery = urlParams.toString();
