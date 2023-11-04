@@ -5,6 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "start": "node api/src/index.ts",
     "build": "npm install && npm install --prefix client && npm run build --prefix client && npm install --prefix api && npm run build --prefix api"
   },
   "keywords": [],
