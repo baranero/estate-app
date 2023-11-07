@@ -17,7 +17,6 @@ const Contact: React.FC<ContactProps> = ({ listing }) => {
     const onChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
       setMessage(event.target.value);
     };
-  console.log(landlord);
   
     useEffect(() => {
       const fetchLandlord = async () => {
